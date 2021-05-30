@@ -1,21 +1,72 @@
 from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import (
+    BaseUserManager, AbstractBaseUser
+)
 
 
-# Create your models here.
-class Cidadao(models.Model):
-    nome = models.CharField(max_length=200, help_text='Digite seu nome completo.')
+Cidadao = settings.AUTH_USER_MODEL
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, nome, data_nascimento, password=None):
+        user = self.model(
+            email=self.normalize_email(email),
+            nome=nome,
+            data_nascimento=data_nascimento
+        )
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, email, nome, data_nascimento, password=None):
+        user = self.create_user(
+            email=self.normalize_email(email),
+            nome=nome,
+            data_nascimento=data_nascimento,
+            password=password
+        )
+        user.is_admin = True
+        user.save()
+        return user
+
+
+class User(AbstractBaseUser):
+    email = models.EmailField(unique=True)
+    nome = models.CharField(verbose_name="Nome completo", max_length=200)
     data_nascimento = models.DateField(verbose_name="Data de nascimento")
-    email = models.EmailField(max_length=254, help_text="Digite seu email.")
-    senha = models.CharField(max_length=50, help_text='Digite sua senha.')
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(verbose_name="Administrador", default=False)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['nome', 'data_nascimento']
+
+    objects = UserManager()
+
+    def get_full_name(self):
+        return self.email
+
+    def get_short_name(self):
+        return self.email
 
     def __str__(self):
-        """String for representing the Model object."""
         return self.nome
 
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    @property
+    def is_staff(self):
+        return self.is_admin
+
+
     class Meta:
-        ordering = ['nome']
-        verbose_name = "Cidadãos"
-        verbose_name_plural = "Cidadãos"
+        verbose_name = "Usuário"
+        verbose_name_plural = "Usuários"
+        ordering = ['nome', 'email']
 
 
 class GruposAtendimento(models.Model):
@@ -28,7 +79,7 @@ class GruposAtendimento(models.Model):
 
     class Meta:
         ordering = ['nome', 'idade_minima']
-        verbose_name = "Grupos de Atendimento"
+        verbose_name = "Grupo de Atendimento"
         verbose_name_plural = "Grupos de Atendimento"
 
 
@@ -42,7 +93,7 @@ class Vacina(models.Model):
 
     class Meta:
         ordering = ['nome', 'fabricante']
-        verbose_name = "Vacinas"
+        verbose_name = "Vacina"
         verbose_name_plural = "Vacinas"
 
 
@@ -59,7 +110,7 @@ class LocalVacinacao(models.Model):
 
     class Meta:
         ordering = ['cidade', 'bairro', 'logradouro', 'nome']
-        verbose_name = "Locais de Vacinação"
+        verbose_name = "Local de Vacinação"
         verbose_name_plural = "Locais de Vacinação"
 
 
@@ -78,7 +129,7 @@ class Sala(models.Model):
 
     class Meta:
         ordering = ['nome']
-        verbose_name = "Salas"
+        verbose_name = "Sala"
         verbose_name_plural = "Salas"
 
 
@@ -152,7 +203,6 @@ class Agendamentos(models.Model):
 
     def nome_cidadao(self):
         return self.id_cidadao.nome
-
     id_cidadao.short_description = "Cidadão"
 
     def data_agendamento(self):
