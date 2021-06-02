@@ -14,31 +14,32 @@
 
 {% block content %}
 
-        <div class="c">
-            {% bootstrap_messages %}
-            <div class="line">
-                <h1>Gráfico de Cidades</h1>
+            <div class="c center">
+                            <div class="row justify-content-center">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h1>Transparência dos Agendamentos</h1>
+                                            {% bootstrap_messages %}
+                                            <div style="display: flex; flex-direction: row;
+                                                 justify-content: space-around">
+                                                <div>
+                                                    {% autoescape off %}
+                                                    {{ plot_pizza }}
+                                                {% endautoescape %}
+                                                </div>
+
+                                                <div>
+                                                    {% autoescape off %}
+                                                        {{ plot_bar }}
+                                                    {% endautoescape %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
             </div>
 
-            <div class ='container line'>
-                <canvas id="grafico" width="500" height="400">
-
-                </canvas>
-            </div>
-        </div>
 
 
     {% bootstrap_javascript jquery='full' %}
-    <script type="text/javascript" src="{% static 'js/Chart.min.js' %}">
-
-    </script>
-
-    <script type="text/javascript">
-        $.get('{%  url 'dados' %}', function(data){
-            var ctx = $("#grafico").get(0).getContext("2d");
-            new Chart(ctx, {
-                type: 'line', data:data
-            });
-        });
-    </script>
 {% endblock %}

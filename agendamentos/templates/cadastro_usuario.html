@@ -9,34 +9,38 @@
     {% bootstrap_css %}
 </head>
 <body>
-    <div class="row no-gutters">
+<div class="row no-gutters">
 
-        <div class="col left">
+    <div class="col left">
 
-        </div>
+    </div>
 
-        <div class="c1 col right">
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h1 class="h1">Cadastro</h1>
-                                                {% bootstrap_messages %}
-                                                <form action="{% url 'cadastro_usuario' %}" method="post" class="form" novalidate>
-                                                    {% csrf_token %}
-                                                    {% bootstrap_form form %}
-                                                    {% buttons %}
-                                                    <button type="submit" class="btn btn-primary btn-block btn-login text-uppercase font-weight-bold mb-2">Cadastrar</button>
-                                                    {% endbuttons %}
-                                                </form>
-                                            </div>
-                                    </div>
-                                </div>
+    <div class="c1 col right">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h1 class="h1">Cadastro</h1>
+                            {% bootstrap_messages %}
+                            <form action="{% url 'cadastro_usuario' %}" method="post" class="form" novalidate>
+                                {% csrf_token %}
+                                {% bootstrap_form form %}
+                                {% buttons %}
+                                    <button type="submit"
+                                            class="btn btn-primary btn-block btn-login text-uppercase font-weight-bold
+                                            mb-2">
+                                        Cadastrar
+                                    </button>
+                                {% endbuttons %}
+                            </form>
                         </div>
                     </div>
+                </div>
+            </div>
         </div>
     </div>
-{% bootstrap_javascript jquery='full'%}
+</div>
+{% bootstrap_javascript jquery='full' %}
 </body>
 </html>

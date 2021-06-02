@@ -1,10 +1,8 @@
 from datetime import date
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
-
 from agendamentos.models import LocalVacinacao, Vacina, GruposAtendimento
 
 Usuario = get_user_model()
@@ -61,27 +59,12 @@ class AutoCadastroUsuario(RegisterForm):
         exclude = ('is_admin',)
         widgets = {
             'data_nascimento': forms.DateInput(
-                format=('%Y-%m-%d'),
+                format='%Y-%m-%d',
                 attrs={'class': 'form-control',
                        'placeholder': 'Selecione uma data',
                        'type': 'date'
                        }),
         }
-
-
-class UserLoginForm(AuthenticationForm):
-    def __init__(self, *args, **kwargs):
-        super(UserLoginForm, self).__init__(*args, **kwargs)
-
-    username = forms.EmailField(widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': '', 'id': 'hello'}))
-    password = forms.CharField(widget=forms.PasswordInput(
-        attrs={
-            'class': 'form-control',
-            'placeholder': '',
-            'id': 'hi',
-        }
-    ))
 
 
 class CustomModelChoiceField(forms.ModelChoiceField):
@@ -91,7 +74,7 @@ class CustomModelChoiceField(forms.ModelChoiceField):
 
 class AgendamentoForm(forms.Form):
     data = forms.CharField(label='Data do agendamento', widget=forms.DateInput(
-        format=('%Y-%m-%d'),
+        format='%Y-%m-%d',
         attrs={'class': 'form-control',
                'placeholder': 'Selecione uma data',
                'type': 'date'

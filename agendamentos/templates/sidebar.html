@@ -1,7 +1,6 @@
 {% url 'index' as graficos %}
 {% url 'login' as login %}
 {% url 'logout' as deslogar %}
-{% url 'teste' as tes %}
 {% url 'agendamento' as agendamento %}
 {% url 'meus_agendamentos' as meus_agendamentos %}
 <style>
@@ -64,6 +63,7 @@
         font-size: 1.1em;
         display: block;
     }
+
     #sidebar ul li a:hover {
         color: #54cdd6;
         background: #fff;
@@ -73,6 +73,7 @@
         color: #fff;
         background: #45adb5
     }
+
     ul ul a {
         font-size: 0.9em !important;
         padding-left: 30px !important;
@@ -80,38 +81,36 @@
     }
 </style>
 
+<nav id="sidebar">
+    <div class="sidebar-header">
+        <h3 style="text-decoration: underline">VacinAÇÃO</h3>
+    </div>
 
-    <!-- Sidebar -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <h3>VacinAÇÃO</h3>
-        </div>
-
-        <ul class="list-unstyled components">
-            <p class="intro">{% if request.user.is_authenticated %}
-                Olá, {{ request.user.get_full_name }}!
-            {% else %}
-                Sessão anônima.
-            {% endif %}
-            </p>
-            <li {% if request.path == graficos %} class="active" {% endif%}>
-                <a href={{ graficos }}>Gráficos das Vacinações</a>
+    <ul class="list-unstyled components">
+        <p class="intro">{% if request.user.is_authenticated %}
+            Olá, {{ request.user.get_full_name }}!
+        {% else %}
+            Sessão anônima.
+        {% endif %}
+        </p>
+        <li {% if request.path == graficos %} class="active" {% endif %}>
+            <a href={{ graficos }}>Gráficos das Vacinações</a>
+        </li>
+        {% if request.user.is_authenticated %}
+            <li {% if request.path == agendamento %} class="active" {% endif %}>
+                <a href={{ agendamento }}>Agendamentos</a>
             </li>
-            {% if request.user.is_authenticated %}
-                <li {% if request.path == agendamento %} class="active" {% endif%}>
-                    <a href={{ agendamento }}>Agendamentos</a>
-                </li>
-                <li {% if request.path == meus_agendamentos %} class="active" {% endif%}>
-                    <a href={{ meus_agendamentos }}>Meu Agendamento</a>
-                </li>
-                <li {% if request.path == deslogar %} class="active" {% endif%}>
-                    <a href={{ deslogar }}>Logout</a>
-                </li>
-            {% else %}
-                <li {% if request.path == login %} class="active" {% endif%}>
-                    <a href={{ login }}>Login</a>
-                </li>
-            {% endif%}
-        </ul>
+            <li {% if request.path == meus_agendamentos %} class="active" {% endif %}>
+                <a href={{ meus_agendamentos }}>Meu Agendamento</a>
+            </li>
+            <li {% if request.path == deslogar %} class="active" {% endif %}>
+                <a href={{ deslogar }}>Logout</a>
+            </li>
+        {% else %}
+            <li {% if request.path == login %} class="active" {% endif %}>
+                <a href={{ login }}>Login</a>
+            </li>
+        {% endif %}
+    </ul>
 
-    </nav>
+</nav>

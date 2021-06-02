@@ -9,43 +9,46 @@
     {% bootstrap_css %}
 {% endblock base_head %}
 {% block content %}
-    <div class = "c c1">
+    <div class="c c1">
         {% if controle == '1' %}
-                <div class="container">
-                    <div class="row justify-content-center">
-                        <div class="col-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div id="section-to-print">
-                                        <p class="titulo">Comprovante de Agendamento</p>
-                                            {% for campo, valor in info.items %}
-                                            <div style="padding: 7px ">
-                                                <p class="campos">{{ campo }}:</p>
-                                                <p class="valores">{{ valor }}</p>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                    <button style="padding-top: 3px" class="btn btn-primary btn-block text-uppercase" onclick="window.print()">Imprimir Comprovante</button>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-6">
+                        <div class="card">
+                            <div class="card-body">
+                                {% bootstrap_messages %}
+                                <div id="section-to-print">
+                                    <p class="titulo">Comprovante de Agendamento</p>
+                                    {% for campo, valor in info.items %}
+                                        <div style="padding: 7px ">
+                                            <p class="campos">{{ campo }}:</p>
+                                            <p class="valores">{{ valor }}</p>
+                                        </div>
+                                    {% endfor %}
                                 </div>
+                                <button style="padding-top: 3px" class="btn btn-primary btn-block text-uppercase"
+                                        onclick="window.print()">Imprimir Comprovante
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
         {% else %}
             <div class="container">
-                    <div class="row justify-content-center">
-                        <div class="col-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h1>
-                                            Você ainda não possui um agendamento!
-                                    </h1>
-                                </div>
+                <div class="row justify-content-center">
+                    <div class="col-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h1>
+                                    Você ainda não possui um agendamento!
+                                </h1>
                             </div>
                         </div>
                     </div>
+                </div>
             </div>
         {% endif %}
     </div>
-    {% bootstrap_javascript jquery='full'%}
+    {% bootstrap_javascript jquery='full' %}
 {% endblock %}

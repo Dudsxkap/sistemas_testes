@@ -127,7 +127,6 @@ class AgendamentosDisponiveis(models.Model):
     def nome_local(self):
         return self.local_vacinacao.nome
 
-
     def nome_vacina(self):
         return self.vacina.nome
 
@@ -149,6 +148,7 @@ class Agendamentos(models.Model):
 
     status = models.CharField(verbose_name="Status do agendamento", max_length=200, choices=status_disponiveis,
                               help_text='Digite o status do agendamento.', default='a')
+    data_realizado = models.DateField(verbose_name="Realizado na data", auto_now_add=True)
 
     def __str__(self):
         """String for representing the Model object."""
