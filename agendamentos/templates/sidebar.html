@@ -1,0 +1,117 @@
+{% url 'index' as graficos %}
+{% url 'login' as login %}
+{% url 'logout' as deslogar %}
+{% url 'teste' as tes %}
+{% url 'agendamento' as agendamento %}
+{% url 'meus_agendamentos' as meus_agendamentos %}
+<style>
+    @import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
+
+    #sidebar {
+        min-width: 300px;
+        max-width: 300px;
+        top: 0;
+        left: 0;
+        z-index: 999;
+        background: #54cdd6;
+        color: #fff;
+        transition: all 0.3s;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #fafafa;
+    }
+
+    .intro {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.1em;
+        font-weight: bold;
+        text-decoration: underline;
+        line-height: 1.7em;
+        color: #999;
+    }
+
+    a, a:hover, a:focus {
+        color: inherit;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    #sidebar {
+        background: #54cdd6;
+        color: #fff;
+        transition: all 0.3s;
+    }
+
+    #sidebar .sidebar-header {
+        padding: 20px;
+        background: #45adb5
+    }
+
+    #sidebar ul.components {
+        padding: 20px 0;
+        border-bottom: 1px solid #47748b;
+    }
+
+    #sidebar ul p {
+        color: #fff;
+        padding: 10px;
+    }
+
+    #sidebar ul li a {
+        padding: 10px;
+        font-size: 1.1em;
+        display: block;
+    }
+    #sidebar ul li a:hover {
+        color: #54cdd6;
+        background: #fff;
+    }
+
+    #sidebar ul li.active > a, a[aria-expanded="true"] {
+        color: #fff;
+        background: #45adb5
+    }
+    ul ul a {
+        font-size: 0.9em !important;
+        padding-left: 30px !important;
+        background: #45adb5
+    }
+</style>
+
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3>VacinAÇÃO</h3>
+        </div>
+
+        <ul class="list-unstyled components">
+            <p class="intro">{% if request.user.is_authenticated %}
+                Olá, {{ request.user.get_full_name }}!
+            {% else %}
+                Sessão anônima.
+            {% endif %}
+            </p>
+            <li {% if request.path == graficos %} class="active" {% endif%}>
+                <a href={{ graficos }}>Gráficos das Vacinações</a>
+            </li>
+            {% if request.user.is_authenticated %}
+                <li {% if request.path == agendamento %} class="active" {% endif%}>
+                    <a href={{ agendamento }}>Agendamentos</a>
+                </li>
+                <li {% if request.path == meus_agendamentos %} class="active" {% endif%}>
+                    <a href={{ meus_agendamentos }}>Meu Agendamento</a>
+                </li>
+                <li {% if request.path == deslogar %} class="active" {% endif%}>
+                    <a href={{ deslogar }}>Logout</a>
+                </li>
+            {% else %}
+                <li {% if request.path == login %} class="active" {% endif%}>
+                    <a href={{ login }}>Login</a>
+                </li>
+            {% endif%}
+        </ul>
+
+    </nav>

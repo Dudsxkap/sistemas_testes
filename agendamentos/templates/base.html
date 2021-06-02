@@ -1,0 +1,28 @@
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% load static %}
+
+<style>
+    .wrapper {
+        align-items: stretch;
+        display: flex;
+        width: 100%;
+    }
+</style>
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>VacinAÇÃO</title>
+    {% block base_head %}{% endblock base_head %}
+</head>
+<body>
+    <div class="wrapper">
+        {% include 'sidebar.html' %}
+        {% block content %} {% endblock %}
+    </div>
+</body>
+</html>

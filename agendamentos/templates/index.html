@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% load bootstrap4 %}
+
+
+{% block base_head %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'css/paginas.css' %}">
+    {%  bootstrap_css  %}
+    <title></title>
+{% endblock base_head %}
+
+
+{% block content %}
+
+        <div class="c">
+            {% bootstrap_messages %}
+            <div class="line">
+                <h1>Gráfico de Cidades</h1>
+            </div>
+
+            <div class ='container line'>
+                <canvas id="grafico" width="500" height="400">
+
+                </canvas>
+            </div>
+        </div>
+
+
+    {% bootstrap_javascript jquery='full' %}
+    <script type="text/javascript" src="{% static 'js/Chart.min.js' %}">
+
+    </script>
+
+    <script type="text/javascript">
+        $.get('{%  url 'dados' %}', function(data){
+            var ctx = $("#grafico").get(0).getContext("2d");
+            new Chart(ctx, {
+                type: 'line', data:data
+            });
+        });
+    </script>
+{% endblock %}
