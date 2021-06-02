@@ -37,6 +37,7 @@ LOGIN_REDIRECT_URL = 'index'
 
 INSTALLED_APPS = [
     'bootstrap4',
+    'django_plotly_dash',
     'chartjs',
     'django.contrib.admin',
     'django.contrib.auth',
