@@ -20,16 +20,18 @@ from django.urls import path
 from django.conf.urls import include
 from django.views.generic import RedirectView
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
 urlpatterns += [
-    path('agendamentos/', include('agendamentos.urls')),
+    path('vacinacao/', include('agendamentos.urls')),
 ]
 
 urlpatterns += [
-    path('', RedirectView.as_view(url='/agendamentos/')),
+    path('', RedirectView.as_view(url='/vacinacao/login/')),
 ]
+
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
