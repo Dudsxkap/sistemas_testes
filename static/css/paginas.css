@@ -1,8 +1,24 @@
 
+{% load static %}
 .c{
         width: 100%;
         padding: 20px;
         min-height: 100vh;
         transition: all 0.3s;
         text-align: center;
+}
+
+h1{
+    font-family: 'Poppins', sans-serif;
+    font-weight: bold;
+    font-size: xx-large;
+    padding-bottom: 15px;
+}
+
+.center{
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #dbdbdb;
 }
