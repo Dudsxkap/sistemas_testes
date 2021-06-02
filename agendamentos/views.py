@@ -1,70 +1,16 @@
+import pandas as pd
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from agendamentos.forms import AutoCadastroUsuario, AgendamentoForm, AgendamentosDisponiveisForm
 from django.contrib import messages
-from django.views.generic import TemplateView
-from chartjs.views.lines import BaseLineChartView
-from chartjs.views.pie import HighChartPieView
-from random import randint
 
-from agendamentos.models import AgendamentosDisponiveis, GruposAtendimento, Agendamentos
+from plotly.offline import plot
+import plotly.express as px
+from datetime import datetime, timedelta, date
 
-
-class IndexView(TemplateView):
-    template_name = 'index.html'
-
-
-class DadosJSONView(BaseLineChartView):
-    # eixox
-    def get_labels(self):
-        labels = [
-            "Janeiro",
-            "Fevereiro",
-            "Março",
-            "Abril",
-            "Maio",
-            "Junho",
-            "Julho",
-            "Agosto",
-            "Setembro",
-            "Outubro",
-            "Novembro",
-            "Dezembro",
-        ]
-        return labels
-
-    def get_providers(self):
-        # datasets
-        datasets = [
-            "P1",
-        ]
-        return datasets
-
-    def get_data(self):
-        # retorna datasets pro plto, cada linha representa um dataset, cada coluna um label
-        # quantidade de dados precisa ser datasets/labels: 12 labrl=12 colunas, 4 data 4 linha
-        dados = []
-        for l in range(1):
-            for c in range(12):
-                dado = [
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                    randint(1, 200),
-                ]
-            dados.append(dado)
-        return dados
+from agendamentos.models import AgendamentosDisponiveis, GruposAtendimento, Agendamentos, Vacina
 
 
 def cadastro_usuario_view(request):
@@ -80,10 +26,6 @@ def cadastro_usuario_view(request):
         form = AutoCadastroUsuario()
     context = {'form': form}
     return render(request, 'cadastro_usuario.html', context=context)
-
-
-def teste(request):
-    return render(request, 'teste.html')
 
 
 @login_required
@@ -124,13 +66,14 @@ def agendamento(request):
 
 @login_required
 def agendamentos_disponiveis(request):
-    qs = AgendamentosDisponiveis.objects.filter(vacina_id=request.session['vacina_escolhida'],
-                                                data=request.session['data_escolhida'],
-                                                num_vagas__gt=0,
-                                                local_vacinacao__cidade=request.session['cidade_escolhida'])
-    if request.method == 'POST':
-        form = AgendamentosDisponiveisForm(qs, request.POST)
-        if form.is_valid():
+    if "data_escolhida" in request.session:
+        qs = AgendamentosDisponiveis.objects.filter(vacina_id=request.session['vacina_escolhida'],
+                                                    data=request.session['data_escolhida'],
+                                                    num_vagas__gt=0,
+                                                    local_vacinacao__cidade=request.session['cidade_escolhida'])
+        if request.method == 'POST':
+            form = AgendamentosDisponiveisForm(qs, request.POST)
+            if form.is_valid():
                 grupo = GruposAtendimento.objects.get(id=request.session['grupo_escolhido'])
                 agendamentos_disp = form.cleaned_data.get('agendamentos_disponiveis')
                 novo_agendamento = Agendamentos(agendamento_disponivel=agendamentos_disp,
@@ -149,11 +92,13 @@ def agendamentos_disponiveis(request):
                 request.session.modified = True
 
                 messages.success(request, "Seu agendamento foi concluido com sucesso!")
-                return redirect('index')
+                return redirect('meus_agendamentos')
+        else:
+            form = AgendamentosDisponiveisForm(qs)
+        context = {'form': form}
+        return render(request, 'disponivel.html', context=context)
     else:
-        form = AgendamentosDisponiveisForm(qs)
-    context = {'form': form}
-    return render(request, 'disponivel.html', context=context)
+        return redirect('index')
 
 
 @login_required
@@ -164,15 +109,15 @@ def meus_agendamentos(request):
         dados = query[0]
         controle = "1"
         info = {
-                'Nome': request.user.nome,
-                'Data': dados.agendamento_disponivel.data,
-                'Horário': dados.agendamento_disponivel.horario,
-                'Grupo de Atendimento': dados.grupo,
-                'Cidade': dados.agendamento_disponivel.local_vacinacao.cidade,
-                'Bairro': dados.agendamento_disponivel.local_vacinacao.bairro,
-                'Logradouro': dados.agendamento_disponivel.local_vacinacao.logradouro,
-                'Local de Vacinação': dados.agendamento_disponivel.local_vacinacao.nome,
-                }
+            'Nome': request.user.nome,
+            'Data': dados.agendamento_disponivel.data,
+            'Horário': dados.agendamento_disponivel.horario,
+            'Grupo de Atendimento': dados.grupo,
+            'Cidade': dados.agendamento_disponivel.local_vacinacao.cidade,
+            'Bairro': dados.agendamento_disponivel.local_vacinacao.bairro,
+            'Logradouro': dados.agendamento_disponivel.local_vacinacao.logradouro,
+            'Local de Vacinação': dados.agendamento_disponivel.local_vacinacao.nome,
+        }
     else:
         controle = "0"
     context = {
@@ -180,3 +125,55 @@ def meus_agendamentos(request):
         'info': info
     }
     return render(request, 'meus_agendamentos.html', context=context)
+
+
+def graficos(request):
+    labels = []
+    values = []
+
+    queryset = Vacina.objects.order_by().values_list('fabricante', flat=True).distinct()
+    for fabricante_vacina in queryset:
+        numero_vacinas = Agendamentos.objects.filter(
+            agendamento_disponivel__vacina__fabricante=fabricante_vacina).count()
+        if numero_vacinas > 0:
+            labels.append(fabricante_vacina)
+            values.append(numero_vacinas)
+
+    dict_pizza = {'Fabricante': labels, 'Agendamentos': values}
+
+    df_pizza = pd.DataFrame(dict_pizza)
+
+    pizza = px.pie(df_pizza, names="Fabricante", values="Agendamentos", height=420, width=560,
+                   title='Agendamentos de vacinação por fabricante', color_discrete_sequence=px.colors.sequential.Teal)
+
+    plot_pizza = plot({'data': pizza}, output_type='div')
+
+    labels = []
+    values = []
+    datas = []
+    data_atual = date.today()
+
+    for i in range(6, -1, -1):
+        datas.append(data_atual - timedelta(days=i))
+
+    for dia in datas:
+        labels.append(dia.strftime('%d/%m'))
+        data_de_agendamento = Agendamentos.objects.filter(
+            data_realizado=dia).count()
+        values.append(data_de_agendamento)
+
+    dict_bar = {'Data': labels, 'Agendamentos': values}
+
+    df_bar = pd.DataFrame(dict_bar)
+
+    bar = px.bar(df_bar, x="Data", y="Agendamentos", height=420, width=560,
+                 title='Agendamentos realizados nos últimos 7 dias', color_discrete_sequence=px.colors.sequential.Teal)
+
+    plot_bar = plot({'data': bar}, output_type='div')
+
+    context = {
+        'plot_pizza': plot_pizza,
+        'plot_bar': plot_bar
+    }
+
+    return render(request, 'index.html', context=context)
