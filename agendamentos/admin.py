@@ -1,6 +1,5 @@
 from django.contrib import admin
-from agendamentos.models import Agendamentos, SalasAgendamento, AgendamentosDisponiveis, Sala, LocalVacinacao, Vacina, \
-    GruposAtendimento
+from agendamentos.models import Agendamentos, AgendamentosDisponiveis, LocalVacinacao, Vacina, GruposAtendimento
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -51,30 +50,19 @@ class LocalVacinacaoAdmin(admin.ModelAdmin):
     list_filter = ('logradouro', 'bairro', 'cidade')
 
 
-class SalaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'nome_local')
-    list_filter = ('nome',)
-
-
-class SalasAgendamentoAdmin(admin.ModelAdmin):
-    list_display = ('nome_sala', 'data_agendamento', 'horario_agendamento', 'numero_vagas')
-
-
 class AgendamentosAdmin(admin.ModelAdmin):
     list_display = ('nome_cidadao', 'nome_grupo', 'data_agendamento', 'horario_agendamento', 'status')
     list_filter = ('status',)
 
 
 class AgendamentosDisponiveisAdmin(admin.ModelAdmin):
-    list_display = ('nome_vacina', 'data', 'horario')
+    list_display = ('nome_local', 'nome_vacina', 'data', 'horario', 'num_vagas')
     list_filter = ('data', 'horario')
 
 
 admin.site.register(Usuario, UsuarioAdmin)
 admin.site.register(Agendamentos, AgendamentosAdmin)
-admin.site.register(SalasAgendamento, SalasAgendamentoAdmin)
 admin.site.register(AgendamentosDisponiveis, AgendamentosDisponiveisAdmin)
-admin.site.register(Sala, SalaAdmin)
 admin.site.register(LocalVacinacao, LocalVacinacaoAdmin)
 admin.site.register(Vacina, VacinaAdmin)
 admin.site.register(GruposAtendimento, GruposAtendimentoAdmin)
