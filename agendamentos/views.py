@@ -7,6 +7,7 @@ from agendamentos.forms import AutoCadastroUsuario, AgendamentoForm, Agendamento
 from django.contrib import messages
 
 from plotly.offline import plot
+import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta, date
 
@@ -26,6 +27,10 @@ def cadastro_usuario_view(request):
         form = AutoCadastroUsuario()
     context = {'form': form}
     return render(request, 'cadastro_usuario.html', context=context)
+
+
+def teste(request):
+    return render(request, 'teste.html')
 
 
 @login_required
@@ -74,25 +79,25 @@ def agendamentos_disponiveis(request):
         if request.method == 'POST':
             form = AgendamentosDisponiveisForm(qs, request.POST)
             if form.is_valid():
-                grupo = GruposAtendimento.objects.get(id=request.session['grupo_escolhido'])
-                agendamentos_disp = form.cleaned_data.get('agendamentos_disponiveis')
-                novo_agendamento = Agendamentos(agendamento_disponivel=agendamentos_disp,
-                                                cidadao=request.user,
-                                                grupo=grupo
-                                                )
-                with transaction.atomic():
-                    novo_agendamento.save()
-                    agendamentos_disp.num_vagas -= 1
-                    agendamentos_disp.save()
+                    grupo = GruposAtendimento.objects.get(id=request.session['grupo_escolhido'])
+                    agendamentos_disp = form.cleaned_data.get('agendamentos_disponiveis')
+                    novo_agendamento = Agendamentos(agendamento_disponivel=agendamentos_disp,
+                                                    cidadao=request.user,
+                                                    grupo=grupo
+                                                    )
+                    with transaction.atomic():
+                        novo_agendamento.save()
+                        agendamentos_disp.num_vagas -= 1
+                        agendamentos_disp.save()
 
-                request.session.pop('data_escolhida')
-                request.session.pop('cidade_escolhida')
-                request.session.pop('vacina_escolhida')
-                request.session.pop('grupo_escolhido')
-                request.session.modified = True
+                    request.session.pop('data_escolhida')
+                    request.session.pop('cidade_escolhida')
+                    request.session.pop('vacina_escolhida')
+                    request.session.pop('grupo_escolhido')
+                    request.session.modified = True
 
-                messages.success(request, "Seu agendamento foi concluido com sucesso!")
-                return redirect('meus_agendamentos')
+                    messages.success(request, "Seu agendamento foi concluido com sucesso!")
+                    return redirect('meus_agendamentos')
         else:
             form = AgendamentosDisponiveisForm(qs)
         context = {'form': form}
@@ -109,15 +114,15 @@ def meus_agendamentos(request):
         dados = query[0]
         controle = "1"
         info = {
-            'Nome': request.user.nome,
-            'Data': dados.agendamento_disponivel.data,
-            'Horário': dados.agendamento_disponivel.horario,
-            'Grupo de Atendimento': dados.grupo,
-            'Cidade': dados.agendamento_disponivel.local_vacinacao.cidade,
-            'Bairro': dados.agendamento_disponivel.local_vacinacao.bairro,
-            'Logradouro': dados.agendamento_disponivel.local_vacinacao.logradouro,
-            'Local de Vacinação': dados.agendamento_disponivel.local_vacinacao.nome,
-        }
+                'Nome': request.user.nome,
+                'Data': dados.agendamento_disponivel.data,
+                'Horário': dados.agendamento_disponivel.horario,
+                'Grupo de Atendimento': dados.grupo,
+                'Cidade': dados.agendamento_disponivel.local_vacinacao.cidade,
+                'Bairro': dados.agendamento_disponivel.local_vacinacao.bairro,
+                'Logradouro': dados.agendamento_disponivel.local_vacinacao.logradouro,
+                'Local de Vacinação': dados.agendamento_disponivel.local_vacinacao.nome,
+                }
     else:
         controle = "0"
     context = {
@@ -125,7 +130,6 @@ def meus_agendamentos(request):
         'info': info
     }
     return render(request, 'meus_agendamentos.html', context=context)
-
 
 def graficos(request):
     labels = []
@@ -139,14 +143,16 @@ def graficos(request):
             labels.append(fabricante_vacina)
             values.append(numero_vacinas)
 
-    dict_pizza = {'Fabricante': labels, 'Agendamentos': values}
+    doughnut = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
 
-    df_pizza = pd.DataFrame(dict_pizza)
+    layout_doughnut = {
+        'height': 420,
+        'width': 560,
+    }
 
-    pizza = px.pie(df_pizza, names="Fabricante", values="Agendamentos", height=420, width=560,
-                   title='Agendamentos de vacinação por fabricante', color_discrete_sequence=px.colors.sequential.Teal)
+    doughnut.update_layout(title='Agendamentos de vacinação por fabricante')
 
-    plot_pizza = plot({'data': pizza}, output_type='div')
+    plot_doughnut = plot({'data': doughnut, 'layout': layout_doughnut}, output_type='div')
 
     labels = []
     values = []
@@ -162,17 +168,18 @@ def graficos(request):
             data_realizado=dia).count()
         values.append(data_de_agendamento)
 
-    dict_bar = {'Data': labels, 'Agendamentos': values}
+    bar = go.Bar(x=labels, y=values)
 
-    df_bar = pd.DataFrame(dict_bar)
+    layout_bar = {
+        'title': 'Agendamentos realizados nos últimos 7 dias',
+        'height': 420,
+        'width': 560,
+    }
 
-    bar = px.bar(df_bar, x="Data", y="Agendamentos", height=420, width=560,
-                 title='Agendamentos realizados nos últimos 7 dias', color_discrete_sequence=px.colors.sequential.Teal)
-
-    plot_bar = plot({'data': bar}, output_type='div')
+    plot_bar = plot({'data': bar, 'layout': layout_bar}, output_type='div')
 
     context = {
-        'plot_pizza': plot_pizza,
+        'plot_doughnut': plot_doughnut,
         'plot_bar': plot_bar
     }
 
