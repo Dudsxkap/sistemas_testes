@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from agendamentos import views
-'''from .views import IndexView, DadosJSONView'''
 
 
 urlpatterns = [
