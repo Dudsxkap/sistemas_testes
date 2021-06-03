@@ -118,6 +118,7 @@ class AgendamentosDisponiveis(models.Model):
     data = models.DateField()
     num_vagas = models.IntegerField(verbose_name="Número de vagas")
     local_vacinacao = models.ForeignKey(LocalVacinacao, verbose_name="Local de vacinação", on_delete=models.CASCADE)
+    grupo = models.ForeignKey(GruposAtendimento, verbose_name="Grupo de Atendimento", on_delete=models.CASCADE)
 
     def __str__(self):
         """String for representing the Model object."""
@@ -142,8 +143,6 @@ class Agendamentos(models.Model):
     agendamento_disponivel = models.ForeignKey(AgendamentosDisponiveis, verbose_name="Agendamento",
                                                on_delete=models.CASCADE)
     cidadao = models.OneToOneField(Cidadao, verbose_name="Nome do Cidadão", on_delete=models.CASCADE)
-    grupo = models.ForeignKey(GruposAtendimento, verbose_name="Grupo de Atendimento", on_delete=models.CASCADE)
-
     status_disponiveis = (('a', "Agendado"), ('c', "Cancelado"), ('v', "Vacinado"))
 
     status = models.CharField(verbose_name="Status do agendamento", max_length=200, choices=status_disponiveis,
@@ -152,7 +151,7 @@ class Agendamentos(models.Model):
 
     def __str__(self):
         """String for representing the Model object."""
-        return f'Agendamento de {self.cidadao.nome}, grupo {self.grupo.nome} na data ' \
+        return f'Agendamento de {self.cidadao.nome}, grupo {self.agendamento_disponivel.grupo.nome} na data ' \
                f'{self.agendamento_disponivel.data} em {self.agendamento_disponivel.horario} '
 
     def nome_cidadao(self):
@@ -170,9 +169,9 @@ class Agendamentos(models.Model):
 
     horario_agendamento.short_description = "Horário"
 
-    def nome_grupo(self):
-        return self.grupo.nome
 
+    def nome_grupo(self):
+        return self.agendamento_disponivel.grupo.nome
     nome_grupo.short_description = "Grupo de atendimento"
 
     class Meta:

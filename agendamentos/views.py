@@ -48,6 +48,8 @@ def agendamento(request):
             if not agendamento_feito.exists():
                 qs = AgendamentosDisponiveis.objects.filter(vacina_id=form.cleaned_data.get('vacinas_disponiveis').id,
                                                             data=form.cleaned_data.get('data'),
+                                                            grupo=form.cleaned_data.get(
+                                                                'grupos_disponiveis'),
                                                             local_vacinacao__cidade=form.cleaned_data.get(
                                                                 'cidades_disponiveis').cidade,
                                                             num_vagas__gt=0)
@@ -74,16 +76,15 @@ def agendamentos_disponiveis(request):
     if "data_escolhida" in request.session:
         qs = AgendamentosDisponiveis.objects.filter(vacina_id=request.session['vacina_escolhida'],
                                                     data=request.session['data_escolhida'],
+                                                    grupo_id=request.session['grupo_escolhido'],
                                                     num_vagas__gt=0,
                                                     local_vacinacao__cidade=request.session['cidade_escolhida'])
         if request.method == 'POST':
             form = AgendamentosDisponiveisForm(qs, request.POST)
             if form.is_valid():
-                    grupo = GruposAtendimento.objects.get(id=request.session['grupo_escolhido'])
                     agendamentos_disp = form.cleaned_data.get('agendamentos_disponiveis')
                     novo_agendamento = Agendamentos(agendamento_disponivel=agendamentos_disp,
                                                     cidadao=request.user,
-                                                    grupo=grupo
                                                     )
                     with transaction.atomic():
                         novo_agendamento.save()
@@ -117,7 +118,7 @@ def meus_agendamentos(request):
                 'Nome': request.user.nome,
                 'Data': dados.agendamento_disponivel.data,
                 'Horário': dados.agendamento_disponivel.horario,
-                'Grupo de Atendimento': dados.grupo,
+                'Grupo de Atendimento': dados.agendamento_disponivel.grupo,
                 'Cidade': dados.agendamento_disponivel.local_vacinacao.cidade,
                 'Bairro': dados.agendamento_disponivel.local_vacinacao.bairro,
                 'Logradouro': dados.agendamento_disponivel.local_vacinacao.logradouro,
