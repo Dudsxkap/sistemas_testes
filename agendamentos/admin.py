@@ -1,9 +1,8 @@
 from django.contrib import admin
-from agendamentos.models import Agendamentos, AgendamentosDisponiveis, LocalVacinacao, Vacina, GruposAtendimento
+from agendamentos.models import Agendamento, AgendamentoDisponivel, EstabelecimentoSaude, GrupoAtendimento
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from agendamentos.forms import RegisterForm, UserAdminChangeForm
 
 Usuario = get_user_model()
 
@@ -13,7 +12,7 @@ admin.site.site_header = 'Administração do site VacinAÇÃO'
 admin.site.site_title = 'Administração do site VacinAÇÃO'
 
 
-class UsuarioAdmin(BaseUserAdmin):
+"""class UsuarioAdmin(BaseUserAdmin):
     add_form = RegisterForm
     form = UserAdminChangeForm
 
@@ -35,34 +34,28 @@ class UsuarioAdmin(BaseUserAdmin):
     filter_horizontal = ()
 
 
-class VacinaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'fabricante')
-    list_filter = ('nome', 'fabricante')
-
-
-class GruposAtendimentoAdmin(admin.ModelAdmin):
+class GrupoAtendimentoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'idade_minima')
     list_filter = ('nome', 'idade_minima')
 
 
-class LocalVacinacaoAdmin(admin.ModelAdmin):
+class EstabelecimentoSaudeAdmin(admin.ModelAdmin):
     list_display = ('nome', 'logradouro', 'bairro', 'cidade')
     list_filter = ('logradouro', 'bairro', 'cidade')
 
 
-class AgendamentosAdmin(admin.ModelAdmin):
+class AgendamentoAdmin(admin.ModelAdmin):
     list_display = ('nome_cidadao', 'nome_grupo', 'data_agendamento', 'horario_agendamento', 'status')
     list_filter = ('status',)
 
 
-class AgendamentosDisponiveisAdmin(admin.ModelAdmin):
+class AgendamentoDisponivelAdmin(admin.ModelAdmin):
     list_display = ('nome_local', 'nome_vacina', 'data', 'horario', 'num_vagas')
     list_filter = ('data', 'horario')
 
 
 admin.site.register(Usuario, UsuarioAdmin)
-admin.site.register(Agendamentos, AgendamentosAdmin)
-admin.site.register(AgendamentosDisponiveis, AgendamentosDisponiveisAdmin)
-admin.site.register(LocalVacinacao, LocalVacinacaoAdmin)
-admin.site.register(Vacina, VacinaAdmin)
-admin.site.register(GruposAtendimento, GruposAtendimentoAdmin)
+admin.site.register(Agendamento, AgendamentoAdmin)
+admin.site.register(AgendamentoDisponivel, AgendamentoDisponivelAdmin)
+admin.site.register(EstabelecimentoSaude, EstabelecimentoSaudeAdmin)
+admin.site.register(GrupoAtendimento, GrupoAtendimentoAdmin)"""

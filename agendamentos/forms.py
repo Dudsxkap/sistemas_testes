@@ -1,75 +1,59 @@
 from datetime import date
+
+from localflavor.br.forms import BRCPFField
 from django import forms
-from django.contrib.auth import get_user_model, password_validation
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from django.core.exceptions import ValidationError
-from agendamentos.models import LocalVacinacao, Vacina, GruposAtendimento
 
-Usuario = get_user_model()
+from agendamentos.models import User, Cidadao, GrupoAtendimento
+from agendamentos.utils import digits
 
 
-class RegisterForm(forms.ModelForm):
+class CadastroCidadaoForm(forms.ModelForm):
+    cpf = BRCPFField(label='CPF')
     senha = forms.CharField(widget=forms.PasswordInput)
     senha_confirmada = forms.CharField(label='Confirme sua senha', widget=forms.PasswordInput)
 
     class Meta:
-        model = Usuario
-        fields = ('nome', 'data_nascimento', 'email', 'is_admin')
-        localized_fields = ('data_nascimento',)
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        qs = Usuario.objects.filter(email=email)
-        if qs.exists():
-            self.add_error('email', "Esse email já foi cadastrado")
-        return email
-
-    def clean(self):
-        cleaned_data = super(RegisterForm, self).clean()
-        senha = cleaned_data.get('senha')
-        senha_confirmada = cleaned_data.get('senha_confirmada')
-        if senha:
-            try:
-                password_validation.validate_password(senha, self.instance)
-            except ValidationError as error:
-                self.add_error('senha', error)
-        if senha and senha_confirmada and senha != senha_confirmada:
-            self.add_error('senha', "Suas senhas não coincidem")
-            self.add_error('senha_confirmada', "Suas senhas não coincidem")
-        return cleaned_data
-
-    def save(self, commit=True):
-        usuario = super().save(commit=False)
-        usuario.set_password(self.cleaned_data["senha"])
-        if commit:
-            usuario.save()
-        return usuario
-
-
-class UserAdminChangeForm(forms.ModelForm):
-    password = ReadOnlyPasswordHashField()
-
-    class Meta:
-        model = Usuario
-        fields = ('nome', 'data_nascimento', 'password', 'email', 'is_active', 'is_admin')
-
-
-class AutoCadastroUsuario(RegisterForm):
-    class Meta(RegisterForm.Meta):
-        exclude = ('is_admin',)
+        model = Cidadao
+        fields = ['cpf', 'nome', 'data_nascimento', 'grupos_atendimento', 'teve_covid', 'senha', 'senha_confirmada']
         widgets = {
             'data_nascimento': forms.DateInput(
                 format='%Y-%m-%d',
-                attrs={'class': 'form-control',
-                       'placeholder': 'Selecione uma data',
-                       'type': 'date'
-                       }),
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Selecione uma data',
+                    'type': 'date'
+                    }
+            ),
         }
 
+    def clean_cpf(self):
+        cpf = digits(self.cleaned_data.get('cpf'))
+        qs = User.objects.filter(cpf=cpf)
+        if qs.exists():
+            self.add_error('cpf', "Esse CPF já foi cadastrado.")
+        return cpf
 
-class CustomModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.cidade
+    def clean(self):
+        senha = self.cleaned_data.get("senha")
+        senha_confirmada = self.cleaned_data.get("senha_confirmada")
+        if senha and senha_confirmada and senha != senha_confirmada:
+            self.add_error("senha", "Suas senhas não coincidem.")
+            self.add_error("senha_confirmada", "Suas senhas não coincidem.")
+        return self.cleaned_data
+
+    def save(self, commit=True):
+        cpf = self.cleaned_data.get("cpf")
+        senha = self.cleaned_data.get("senha")
+        grupos_atendimento = self.cleaned_data.get('grupos_atendimento')
+
+        cidadao = super().save(commit=False)
+        usuario = User.objects.create_user(cpf, senha)
+        cidadao.auth_user = usuario
+        cidadao.save()
+        cidadao.grupos_atendimento.add(*grupos_atendimento)
+        cidadao.apto_agendamento = cidadao.is_apto_agendamento()
+        cidadao.save()
+        return cidadao
 
 
 class AgendamentoForm(forms.Form):
@@ -79,10 +63,6 @@ class AgendamentoForm(forms.Form):
                'placeholder': 'Selecione uma data',
                'type': 'date'
                }))
-    cidades_disponiveis = CustomModelChoiceField(label='Cidades disponíveis',
-                                                 queryset=LocalVacinacao.objects.all().distinct("cidade"))
-    vacinas_disponiveis = forms.ModelChoiceField(label='Vacinas disponíveis',
-                                                 queryset=Vacina.objects.all())
 
     def __init__(self, usuario, *args, **kwargs):
         super(AgendamentoForm, self).__init__(*args, **kwargs)
@@ -100,12 +80,12 @@ class AgendamentoForm(forms.Form):
         else:
             idade = data_atual.year - data_nascimento.year
         self.fields['grupos_disponiveis'] = forms.ModelChoiceField(label='Grupos disponíveis',
-                                                                   queryset=GruposAtendimento.objects.filter(
+                                                                   queryset=GrupoAtendimento.objects.filter(
                                                                        idade_minima__gte=idade))
 
 
-class AgendamentosDisponiveisForm(forms.Form):
+class AgendamentoDisponivelForm(forms.Form):
     def __init__(self, qs, *args, **kwargs):
-        super(AgendamentosDisponiveisForm, self).__init__(*args, **kwargs)
+        super(AgendamentoDisponivelForm, self).__init__(*args, **kwargs)
         self.fields['agendamentos_disponiveis'] = forms.ModelChoiceField(label='Agendamentos disponíveis',
                                                                          queryset=qs)

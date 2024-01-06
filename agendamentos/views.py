@@ -3,7 +3,7 @@ from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, redirect
-from agendamentos.forms import AutoCadastroUsuario, AgendamentoForm, AgendamentosDisponiveisForm
+from agendamentos.forms import CadastroCidadaoForm, AgendamentoForm, AgendamentoDisponivelForm
 from django.contrib import messages
 
 from plotly.offline import plot
@@ -11,26 +11,20 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta, date
 
-from agendamentos.models import AgendamentosDisponiveis, GruposAtendimento, Agendamentos, Vacina
+from agendamentos.models import AgendamentoDisponivel, GrupoAtendimento, Agendamento
 
 
-def cadastro_usuario_view(request):
-    if request.method == 'POST':
-        form = AutoCadastroUsuario(request.POST)
+def cadastrar_usuario(request):
+    form = CadastroCidadaoForm(request.POST or None)
+    if request.POST:
         if form.is_valid():
-            usuario = form.save()
-            usuario_autenticado = authenticate(username=usuario.email, password=form.cleaned_data.get("senha"))
+            cidadao = form.save()
+            user = cidadao.auth_user
+            usuario_autenticado = authenticate(username=user.cpf, password=form.cleaned_data.get("senha"))
             login(request, usuario_autenticado)
             messages.success(request, 'Usuário cadastrado com sucesso!')
             return redirect('index')
-    else:
-        form = AutoCadastroUsuario()
-    context = {'form': form}
-    return render(request, 'cadastro_usuario.html', context=context)
-
-
-def teste(request):
-    return render(request, 'teste.html')
+    return render(request, 'cadastro_usuario.html', locals())
 
 
 @login_required
@@ -44,9 +38,9 @@ def agendamento(request):
     if request.method == 'POST':
         form = AgendamentoForm(request.user, request.POST)
         if form.is_valid():
-            agendamento_feito = Agendamentos.objects.filter(cidadao=request.user)
+            agendamento_feito = Agendamento.objects.filter(cidadao=request.user)
             if not agendamento_feito.exists():
-                qs = AgendamentosDisponiveis.objects.filter(vacina_id=form.cleaned_data.get('vacinas_disponiveis').id,
+                qs = AgendamentoDisponivel.objects.filter(vacina_id=form.cleaned_data.get('vacinas_disponiveis').id,
                                                             data=form.cleaned_data.get('data'),
                                                             grupo=form.cleaned_data.get(
                                                                 'grupos_disponiveis'),
@@ -74,16 +68,16 @@ def agendamento(request):
 @login_required
 def agendamentos_disponiveis(request):
     if "data_escolhida" in request.session:
-        qs = AgendamentosDisponiveis.objects.filter(vacina_id=request.session['vacina_escolhida'],
+        qs = AgendamentoDisponivel.objects.filter(vacina_id=request.session['vacina_escolhida'],
                                                     data=request.session['data_escolhida'],
                                                     grupo_id=request.session['grupo_escolhido'],
                                                     num_vagas__gt=0,
                                                     local_vacinacao__cidade=request.session['cidade_escolhida'])
         if request.method == 'POST':
-            form = AgendamentosDisponiveisForm(qs, request.POST)
+            form = AgendamentoDisponivelForm(qs, request.POST)
             if form.is_valid():
                     agendamentos_disp = form.cleaned_data.get('agendamentos_disponiveis')
-                    novo_agendamento = Agendamentos(agendamento_disponivel=agendamentos_disp,
+                    novo_agendamento = Agendamento(agendamento_disponivel=agendamentos_disp,
                                                     cidadao=request.user,
                                                     )
                     with transaction.atomic():
@@ -100,7 +94,7 @@ def agendamentos_disponiveis(request):
                     messages.success(request, "Seu agendamento foi concluido com sucesso!")
                     return redirect('meus_agendamentos')
         else:
-            form = AgendamentosDisponiveisForm(qs)
+            form = AgendamentoDisponivelForm(qs)
         context = {'form': form}
         return render(request, 'disponivel.html', context=context)
     else:
@@ -109,7 +103,7 @@ def agendamentos_disponiveis(request):
 
 @login_required
 def meus_agendamentos(request):
-    query = Agendamentos.objects.filter(cidadao=request.user)
+    query = Agendamento.objects.filter(cidadao=request.user)
     info = {}
     if query.exists():
         dados = query[0]
@@ -132,13 +126,16 @@ def meus_agendamentos(request):
     }
     return render(request, 'meus_agendamentos.html', context=context)
 
+
+
 def graficos(request):
-    labels = []
+    return render(request, 'index.html', locals())
+    """labels = []
     values = []
 
     queryset = Vacina.objects.order_by().values_list('fabricante', flat=True).distinct()
     for fabricante_vacina in queryset:
-        numero_vacinas = Agendamentos.objects.filter(
+        numero_vacinas = Agendamento.objects.filter(
             agendamento_disponivel__vacina__fabricante=fabricante_vacina).count()
         if numero_vacinas > 0:
             labels.append(fabricante_vacina)
@@ -165,7 +162,7 @@ def graficos(request):
 
     for dia in datas:
         labels.append(dia.strftime('%d/%m'))
-        data_de_agendamento = Agendamentos.objects.filter(
+        data_de_agendamento = Agendamento.objects.filter(
             data_realizado=dia).count()
         values.append(data_de_agendamento)
 
@@ -184,4 +181,5 @@ def graficos(request):
         'plot_bar': plot_bar
     }
 
-    return render(request, 'index.html', context=context)
+    return render(request, 'index.html', context=context)"""
+

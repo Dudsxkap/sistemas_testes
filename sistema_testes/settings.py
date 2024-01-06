@@ -60,10 +60,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'sistema_testes.urls'
 
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [TEMPLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -109,18 +111,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-    {
-        'NAME': 'agendamentos.validators.NumberValidator'
-    },
-    {
-        'NAME': 'agendamentos.validators.UppercaseValidator'
-    },
-    {
-        'NAME': 'agendamentos.validators.LowercaseValidator'
-    },
-    {
-        'NAME': 'agendamentos.validators.SymbolValidator'
     },
 ]
 

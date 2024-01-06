@@ -11,11 +11,11 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    path('vacinacao/', include('agendamentos.urls')),
+    path('testes/', include('agendamentos.urls')),
 ]
 
 urlpatterns += [
-    path('', RedirectView.as_view(url='/vacinacao/')),
+    path('', RedirectView.as_view(url='/testes/')),
 ]
 
 
