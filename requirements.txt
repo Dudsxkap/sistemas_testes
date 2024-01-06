@@ -10,6 +10,7 @@ dash-renderer==1.9.1
 dash-table==4.11.3
 Django==3.2.3
 django-bootstrap4==3.0.1
+django-localflavor==3.0.1
 django-chartjs==2.2.1
 django-plotly-dash==1.6.4
 dpd-components==0.1.0
