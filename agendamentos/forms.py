@@ -4,7 +4,7 @@ from django.db import transaction
 from localflavor.br.forms import BRCPFField
 from django import forms
 
-from agendamentos.models import User, Cidadao, GrupoAtendimento, AgendamentoDisponivel, Agendamento
+from agendamentos.models import User, Cidadao, AgendamentoDisponivel, Agendamento
 from agendamentos.utils import digits
 
 
@@ -86,10 +86,3 @@ class AgendamentoForm(forms.ModelForm):
             agendamento_disponivel.num_vagas -= 1
             agendamento_disponivel.save()
         return agendamento
-
-
-class AgendamentoDisponivelForm(forms.Form):
-    def __init__(self, qs, *args, **kwargs):
-        super(AgendamentoDisponivelForm, self).__init__(*args, **kwargs)
-        self.fields['agendamentos_disponiveis'] = forms.ModelChoiceField(label='Agendamentos disponíveis',
-                                                                         queryset=qs)

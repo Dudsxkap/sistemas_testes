@@ -1,18 +1,11 @@
-import pandas as pd
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import render, redirect
-from agendamentos.forms import CadastroCidadaoForm, AgendamentoForm, AgendamentoDisponivelForm
+from agendamentos.forms import CadastroCidadaoForm, AgendamentoForm
 from django.contrib import messages
 
-from plotly.offline import plot
-import plotly.graph_objects as go
-import plotly.express as px
-from datetime import datetime, timedelta, date
-
-from agendamentos.models import AgendamentoDisponivel, GrupoAtendimento, Agendamento, Cidadao
+from agendamentos.models import Cidadao
 from agendamentos.utils import strftime_local
 
 
@@ -49,42 +42,6 @@ def agendamento(request):
             return redirect('meus_agendamentos')
 
     return render(request, 'agendamento.html', locals())
-
-
-@login_required
-def agendamentos_disponiveis(request):
-    if "data_escolhida" in request.session:
-        qs = AgendamentoDisponivel.objects.filter(vacina_id=request.session['vacina_escolhida'],
-                                                    data=request.session['data_escolhida'],
-                                                    grupo_id=request.session['grupo_escolhido'],
-                                                    num_vagas__gt=0,
-                                                    local_vacinacao__cidade=request.session['cidade_escolhida'])
-        if request.method == 'POST':
-            form = AgendamentoDisponivelForm(qs, request.POST)
-            if form.is_valid():
-                    agendamentos_disp = form.cleaned_data.get('agendamentos_disponiveis')
-                    novo_agendamento = Agendamento(agendamento_disponivel=agendamentos_disp,
-                                                    cidadao=request.user,
-                                                    )
-                    with transaction.atomic():
-                        novo_agendamento.save()
-                        agendamentos_disp.num_vagas -= 1
-                        agendamentos_disp.save()
-
-                    request.session.pop('data_escolhida')
-                    request.session.pop('cidade_escolhida')
-                    request.session.pop('vacina_escolhida')
-                    request.session.pop('grupo_escolhido')
-                    request.session.modified = True
-
-                    messages.success(request, "Seu agendamento foi concluido com sucesso!")
-                    return redirect('meus_agendamentos')
-        else:
-            form = AgendamentoDisponivelForm(qs)
-        context = {'form': form}
-        return render(request, 'disponivel.html', context=context)
-    else:
-        return redirect('index')
 
 
 @login_required
