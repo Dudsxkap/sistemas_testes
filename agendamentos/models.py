@@ -100,6 +100,8 @@ class AgendamentoDisponivel(models.Model):
     data = models.DateField()
     horario = models.TimeField(verbose_name="Horário")
     num_vagas = models.IntegerField(verbose_name="Número de vagas")
+    idade_inicial = models.IntegerField(verbose_name="Idade inicial")
+    idade_final = models.IntegerField(verbose_name="Idade final")
     estabelecimento_saude = models.ForeignKey(
         "EstabelecimentoSaude",
         verbose_name="Estabelecimento de Saúde",
