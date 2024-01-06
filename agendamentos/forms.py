@@ -1,9 +1,10 @@
-from datetime import date
+from datetime import datetime
 
+from django.db import transaction
 from localflavor.br.forms import BRCPFField
 from django import forms
 
-from agendamentos.models import User, Cidadao, GrupoAtendimento
+from agendamentos.models import User, Cidadao, GrupoAtendimento, AgendamentoDisponivel, Agendamento
 from agendamentos.utils import digits
 
 
@@ -21,8 +22,9 @@ class CadastroCidadaoForm(forms.ModelForm):
                 attrs={
                     'class': 'form-control',
                     'placeholder': 'Selecione uma data',
-                    'type': 'date'
-                    }
+                    'type': 'date',
+                    'max': datetime.now().date(),
+                }
             ),
         }
 
@@ -56,32 +58,34 @@ class CadastroCidadaoForm(forms.ModelForm):
         return cidadao
 
 
-class AgendamentoForm(forms.Form):
-    data = forms.CharField(label='Data do agendamento', widget=forms.DateInput(
-        format='%Y-%m-%d',
-        attrs={'class': 'form-control',
-               'placeholder': 'Selecione uma data',
-               'type': 'date'
-               }))
+class AgendamentoForm(forms.ModelForm):
+    class Meta:
+        model = Agendamento
+        fields = ['agendamento_disponivel']
 
-    def __init__(self, usuario, *args, **kwargs):
+    def __init__(self, cidadao, *args, **kwargs):
         super(AgendamentoForm, self).__init__(*args, **kwargs)
-        self.usuario = usuario
-        data_nascimento = self.usuario.data_nascimento
-        data_atual = date.today()
-        try:
-            data_nascimento = data_nascimento.replace(year=data_atual.year)
-        except ValueError:
-            data_nascimento = data_nascimento.replace(year=data_atual.year,
-                                                      month=data_nascimento.month + 1, day=1)
-        idade = 0
-        if data_nascimento > data_atual:
-            idade = data_atual.year - data_nascimento.year - 1
-        else:
-            idade = data_atual.year - data_nascimento.year
-        self.fields['grupos_disponiveis'] = forms.ModelChoiceField(label='Grupos disponíveis',
-                                                                   queryset=GrupoAtendimento.objects.filter(
-                                                                       idade_minima__gte=idade))
+        self.cidadao = cidadao
+        idade = self.cidadao.idade
+        self.fields['agendamento_disponivel'] = forms.ModelChoiceField(
+            label='Agendamentos disponíveis',
+            queryset=AgendamentoDisponivel.objects.filter(
+                idade_inicial__lte=idade, idade_final__gte=idade, data__gt=datetime.now(),
+                num_vagas__gt=0
+            )
+        )
+
+    @transaction.atomic()
+    def save(self, commit=True):
+        agendamento_disponivel = self.cleaned_data.get('agendamento_disponivel')
+
+        agendamento = super().save(commit=False)
+        agendamento.cidadao = self.cidadao
+        if commit:
+            agendamento.save()
+            agendamento_disponivel.num_vagas -= 1
+            agendamento_disponivel.save()
+        return agendamento
 
 
 class AgendamentoDisponivelForm(forms.Form):

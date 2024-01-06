@@ -13,6 +13,7 @@ import plotly.express as px
 from datetime import datetime, timedelta, date
 
 from agendamentos.models import AgendamentoDisponivel, GrupoAtendimento, Agendamento, Cidadao
+from agendamentos.utils import strftime_local
 
 
 def cadastrar_usuario(request):
@@ -36,34 +37,18 @@ def deslogar(request):
 
 @login_required
 def agendamento(request):
-    if request.method == 'POST':
-        form = AgendamentoForm(request.user, request.POST)
+    if request.user.cidadao.get_agendamento():
+        messages.error(request, "Você já possui um agendamento!")
+        return redirect('meus_agendamentos')
+
+    form = AgendamentoForm(request.user.cidadao, request.POST or None)
+    if request.POST:
         if form.is_valid():
-            agendamento_feito = Agendamento.objects.filter(cidadao=request.user)
-            if not agendamento_feito.exists():
-                qs = AgendamentoDisponivel.objects.filter(vacina_id=form.cleaned_data.get('vacinas_disponiveis').id,
-                                                            data=form.cleaned_data.get('data'),
-                                                            grupo=form.cleaned_data.get(
-                                                                'grupos_disponiveis'),
-                                                            local_vacinacao__cidade=form.cleaned_data.get(
-                                                                'cidades_disponiveis').cidade,
-                                                            num_vagas__gt=0)
+            agendamento = form.save()
+            messages.success(request, "Seu agendamento foi concluído com sucesso!")
+            return redirect('meus_agendamentos')
 
-                if qs.exists():
-                    request.session['data_escolhida'] = form.cleaned_data.get('data')
-                    request.session['cidade_escolhida'] = form.cleaned_data.get('cidades_disponiveis').cidade
-                    request.session['vacina_escolhida'] = form.cleaned_data.get('vacinas_disponiveis').id
-                    request.session['grupo_escolhido'] = form.cleaned_data.get('grupos_disponiveis').id
-
-                    return redirect('agendamentos_disponiveis')
-                else:
-                    messages.error(request, "Não existem agendamentos disponíveis para esses parâmetros.")
-            else:
-                messages.error(request, "Você já possui um agendamento!")
-    else:
-        form = AgendamentoForm(request.user)
-    context = {'form': form}
-    return render(request, 'agendamento.html', context=context)
+    return render(request, 'agendamento.html', locals())
 
 
 @login_required
@@ -104,12 +89,12 @@ def agendamentos_disponiveis(request):
 
 @login_required
 def meus_agendamentos(request):
-    agendamento = Agendamento.objects.filter(cidadao=request.user.cidadao).first()
+    agendamento = request.user.cidadao.get_agendamento()
     dados_agendamento = {}
     if agendamento:
-        info = {
-            "Data": agendamento.agendamento_disponivel.data.strftime('%d/%m/%Y'),
-            "Horário": agendamento.agendamento_disponivel.data.strftime('%H:%M'),
+        dados_agendamento = {
+            "Data": strftime_local(agendamento.agendamento_disponivel.data, '%d/%m/%Y'),
+            "Horário": strftime_local(agendamento.agendamento_disponivel.data, '%H:%M'),
             "Expirado": agendamento.expirado(),
             "Dia da semana": agendamento.agendamento_disponivel.dia_semana(),
             "Estabelecimento de saúde": str(agendamento.agendamento_disponivel.estabelecimento_saude),

@@ -6,7 +6,10 @@ from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from django.utils import timezone
 from localflavor.br.models import BRCPFField
+
+from agendamentos.utils import strftime_local
 
 
 class UserManager(BaseUserManager):
@@ -71,6 +74,9 @@ class Cidadao(models.Model):
         idade = relativedelta(datetime.now().date(), self.data_nascimento)
         return idade.years
 
+    def get_agendamento(self):
+        return Agendamento.objects.filter(cidadao=self).first()
+
 
 class GrupoAtendimento(models.Model):
     nome = models.CharField(max_length=200)
@@ -114,7 +120,7 @@ class AgendamentoDisponivel(models.Model):
         return dia_semana_str[self.data.date().weekday()]
 
     def __str__(self):
-        return f"{self.data} - {self.estabelecimento_saude} - {self.num_vagas} vagas"
+        return f"{strftime_local(self.data, '%d/%m/%Y %H:%M')} - {self.estabelecimento_saude} - {self.num_vagas} vagas"
 
     class Meta:
         verbose_name = "Agendamentos Disponíveis"
@@ -127,7 +133,7 @@ class Agendamento(models.Model):
     cidadao = models.OneToOneField(Cidadao, verbose_name="Cidadão", on_delete=models.CASCADE)
 
     def expirado(self):
-        if self.agendamento_disponivel.data > datetime.now():
+        if self.agendamento_disponivel.data < timezone.now():
             return 'Sim'
         return 'Não'
 
