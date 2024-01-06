@@ -23,7 +23,7 @@
                         <div class="card-body">
                             <h1 class="h1">Cadastro</h1>
                             {% bootstrap_messages %}
-                            <form action="{% url 'cadastro_usuario' %}" method="post" class="form" novalidate>
+                            <form action="{% url 'cadastrar_usuario' %}" method="post" class="form" novalidate>
                                 {% csrf_token %}
                                 {% bootstrap_form form %}
                                 {% buttons %}
