@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+{% load bootstrap4 %}
+
+
+{% block base_head %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'css/paginas.css' %}">
+    {%  bootstrap_css  %}
+    <title></title>
+{% endblock base_head %}
+
+{% block content %}
+    <div class="c center">
+        <div class="row justify-content-center">
+            <div class="card">
+                <div class="card-body">
+                    <h1>Transparência dos Agendamentos</h1>
+                    {% bootstrap_messages %}
+                    <canvas class="chart" id="hospital-grafico"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascript %}
+    {% bootstrap_javascript jquery='full' %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <script>
+        let config = {
+            type: 'pie',
+            data: {
+                datasets: [
+                    {
+                        data: {{ data|safe }},
+                        backgroundColor: [
+                            '#757294', '#646187', '#53507A'
+                        ],
+                        label: 'Aptidão para Agendamento'
+                    }
+                ],
+                labels: {{ labels|safe }}
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Quantidade de cidadãos por aptidão para agendamento',
+                }
+            }
+        };
+
+        window.onload = function() {
+            let ctx = document.getElementById('hospital-grafico').getContext('2d');
+            window.myPie = new Chart(ctx, config);
+        };
+
+    </script>
+{% endblock %}

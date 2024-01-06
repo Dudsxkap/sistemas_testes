@@ -11,6 +11,10 @@ from agendamentos.models import Cidadao
 from agendamentos.utils import strftime_local
 
 
+def index(request):
+    return render(request, 'index.html', locals())
+
+
 def cadastrar_usuario(request):
     form = CadastroCidadaoForm(request.POST or None)
     if request.POST:
@@ -27,10 +31,9 @@ def cadastrar_usuario(request):
 @login_required
 def deslogar(request):
     logout(request)
-    return redirect('login')
+    return redirect('index')
 
 
-@login_required
 @cidadao_required()
 @apto_agendamento_required()
 def agendamento(request):
@@ -48,7 +51,6 @@ def agendamento(request):
     return render(request, 'agendamento.html', locals())
 
 
-@login_required
 @cidadao_required()
 @apto_agendamento_required()
 def meus_agendamentos(request):
@@ -65,14 +67,16 @@ def meus_agendamentos(request):
     return render(request, 'meus_agendamentos.html', locals())
 
 
-@login_required
 @cidadao_required()
 def graficos(request):
+    if not request.user.is_staff:
+        return redirect('index')
+
     labels = []
     data = []
     cidadaos = Cidadao.objects.all().values('apto_agendamento').annotate(qtd=Count('pk'))
     for cidadao in cidadaos:
         labels.append('Apto' if cidadao['apto_agendamento'] else 'Inapto')
         data.append(cidadao['qtd'])
-    return render(request, 'index.html', locals())
+    return render(request, 'graficos.html', locals())
 
