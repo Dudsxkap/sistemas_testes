@@ -87,14 +87,19 @@
     </div>
 
     <ul class="list-unstyled components">
-        <p class="intro">{% if request.user.is_authenticated %}
-            Olá, {{ request.user.cidadao.nome }}!
-        {% else %}
-            Sessão anônima.
-        {% endif %}
+        <p class="intro">
+            Nome: {{ request.user.cidadao.nome }}
+            <br>
+            CPF: {{ request.user.cpf }}
+            <br>
+            Data de nascimento: {{ request.user.cidadao.data_nascimento|date:'d/m/y' }}
+            <br>
+            Idade: {{ request.user.cidadao.idade }} anos
+            <br>
+            Apto para agendamento: {% if request.user.cidadao.apto_agendamento %} Sim {% else %} Não {% endif %}
         </p>
         <li {% if request.path == graficos %} class="active" {% endif %}>
-            <a href={{ graficos }}>Gráficos das Vacinações</a>
+            <a href={{ graficos }}>Transparência</a>
         </li>
         {% if request.user.is_authenticated %}
             {% if request.user.cidadao.apto_agendamento %}
