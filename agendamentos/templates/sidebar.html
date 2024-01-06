@@ -83,12 +83,12 @@
 
 <nav id="sidebar">
     <div class="sidebar-header">
-        <h3 style="text-decoration: underline">VacinAÇÃO</h3>
+        <h3 style="text-decoration: underline">Agendamento de Testes</h3>
     </div>
 
     <ul class="list-unstyled components">
         <p class="intro">{% if request.user.is_authenticated %}
-            Olá, {{ request.user.get_full_name }}!
+            Olá, {{ request.user.cidadao.nome }}!
         {% else %}
             Sessão anônima.
         {% endif %}

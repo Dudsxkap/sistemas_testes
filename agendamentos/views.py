@@ -2,6 +2,7 @@ import pandas as pd
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import render, redirect
 from agendamentos.forms import CadastroCidadaoForm, AgendamentoForm, AgendamentoDisponivelForm
 from django.contrib import messages
@@ -11,7 +12,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta, date
 
-from agendamentos.models import AgendamentoDisponivel, GrupoAtendimento, Agendamento
+from agendamentos.models import AgendamentoDisponivel, GrupoAtendimento, Agendamento, Cidadao
 
 
 def cadastrar_usuario(request):
@@ -103,83 +104,26 @@ def agendamentos_disponiveis(request):
 
 @login_required
 def meus_agendamentos(request):
-    query = Agendamento.objects.filter(cidadao=request.user)
-    info = {}
-    if query.exists():
-        dados = query[0]
-        controle = "1"
+    agendamento = Agendamento.objects.filter(cidadao=request.user.cidadao).first()
+    dados_agendamento = {}
+    if agendamento:
         info = {
-                'Nome': request.user.nome,
-                'Data': dados.agendamento_disponivel.data,
-                'Horário': dados.agendamento_disponivel.horario,
-                'Grupo de Atendimento': dados.agendamento_disponivel.grupo,
-                'Cidade': dados.agendamento_disponivel.local_vacinacao.cidade,
-                'Bairro': dados.agendamento_disponivel.local_vacinacao.bairro,
-                'Logradouro': dados.agendamento_disponivel.local_vacinacao.logradouro,
-                'Local de Vacinação': dados.agendamento_disponivel.local_vacinacao.nome,
-                }
-    else:
-        controle = "0"
-    context = {
-        'controle': controle,
-        'info': info
-    }
-    return render(request, 'meus_agendamentos.html', context=context)
+            "Data": agendamento.agendamento_disponivel.data.strftime('%d/%m/%Y'),
+            "Horário": agendamento.agendamento_disponivel.data.strftime('%H:%M'),
+            "Expirado": agendamento.expirado(),
+            "Dia da semana": agendamento.agendamento_disponivel.dia_semana(),
+            "Estabelecimento de saúde": str(agendamento.agendamento_disponivel.estabelecimento_saude),
+        }
+    return render(request, 'meus_agendamentos.html', locals())
 
 
-
+@login_required
 def graficos(request):
-    return render(request, 'index.html', locals())
-    """labels = []
-    values = []
-
-    queryset = Vacina.objects.order_by().values_list('fabricante', flat=True).distinct()
-    for fabricante_vacina in queryset:
-        numero_vacinas = Agendamento.objects.filter(
-            agendamento_disponivel__vacina__fabricante=fabricante_vacina).count()
-        if numero_vacinas > 0:
-            labels.append(fabricante_vacina)
-            values.append(numero_vacinas)
-
-    doughnut = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
-
-    layout_doughnut = {
-        'height': 420,
-        'width': 560,
-    }
-
-    doughnut.update_layout(title='Agendamentos de vacinação por fabricante')
-
-    plot_doughnut = plot({'data': doughnut, 'layout': layout_doughnut}, output_type='div')
-
     labels = []
-    values = []
-    datas = []
-    data_atual = date.today()
-
-    for i in range(6, -1, -1):
-        datas.append(data_atual - timedelta(days=i))
-
-    for dia in datas:
-        labels.append(dia.strftime('%d/%m'))
-        data_de_agendamento = Agendamento.objects.filter(
-            data_realizado=dia).count()
-        values.append(data_de_agendamento)
-
-    bar = go.Bar(x=labels, y=values)
-
-    layout_bar = {
-        'title': 'Agendamentos realizados nos últimos 7 dias',
-        'height': 420,
-        'width': 560,
-    }
-
-    plot_bar = plot({'data': bar, 'layout': layout_bar}, output_type='div')
-
-    context = {
-        'plot_doughnut': plot_doughnut,
-        'plot_bar': plot_bar
-    }
-
-    return render(request, 'index.html', context=context)"""
+    data = []
+    cidadaos = Cidadao.objects.all().values('apto_agendamento').annotate(qtd=Count('pk'))
+    for cidadao in cidadaos:
+        labels.append('Apto' if cidadao['apto_agendamento'] else 'Inapto')
+        data.append(cidadao['qtd'])
+    return render(request, 'index.html', locals())
 

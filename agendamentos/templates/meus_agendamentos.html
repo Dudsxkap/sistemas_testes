@@ -10,7 +10,7 @@
 {% endblock base_head %}
 {% block content %}
     <div class="c c1">
-        {% if controle == '1' %}
+        {% if agendamento %}
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-6">
@@ -19,7 +19,7 @@
                                 {% bootstrap_messages %}
                                 <div id="section-to-print">
                                     <p class="titulo">Comprovante de Agendamento</p>
-                                    {% for campo, valor in info.items %}
+                                    {% for campo, valor in dados_agendamento.items %}
                                         <div style="padding: 7px ">
                                             <p class="campos">{{ campo }}:</p>
                                             <p class="valores">{{ valor }}</p>

@@ -49,7 +49,7 @@ class Cidadao(models.Model):
     data_nascimento = models.DateField(verbose_name="Data de nascimento")
     grupos_atendimento = models.ManyToManyField('GrupoAtendimento', verbose_name='Grupos de atendimento')
     teve_covid = models.BooleanField(verbose_name="Teve COVID-19 nos últimos 30 dias?")
-    apto_agendamento = models.BooleanField(verbose_name="Está apto para agendamento?")
+    apto_agendamento = models.BooleanField(verbose_name="Está apto para agendamento?", default=False)
     auth_user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cidadao")
 
     def __str__(self):
@@ -97,8 +97,7 @@ class EstabelecimentoSaude(models.Model):
 
 
 class AgendamentoDisponivel(models.Model):
-    data = models.DateField()
-    horario = models.TimeField(verbose_name="Horário")
+    data = models.DateTimeField()
     num_vagas = models.IntegerField(verbose_name="Número de vagas")
     idade_inicial = models.IntegerField(verbose_name="Idade inicial")
     idade_final = models.IntegerField(verbose_name="Idade final")
@@ -109,8 +108,13 @@ class AgendamentoDisponivel(models.Model):
         related_name="agendamento_disponivel"
     )
 
+    def dia_semana(self):
+        dia_semana_str = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira',
+                          'Sábado', 'Domingo']
+        return dia_semana_str[self.data.date().weekday()]
+
     def __str__(self):
-        return f"{self.data} {self.horario} - {self.estabelecimento_saude} - {self.num_vagas} vagas"
+        return f"{self.data} - {self.estabelecimento_saude} - {self.num_vagas} vagas"
 
     class Meta:
         verbose_name = "Agendamentos Disponíveis"
@@ -121,6 +125,11 @@ class Agendamento(models.Model):
     agendamento_disponivel = models.ForeignKey(AgendamentoDisponivel, verbose_name="Agendamento",
                                                on_delete=models.CASCADE)
     cidadao = models.OneToOneField(Cidadao, verbose_name="Cidadão", on_delete=models.CASCADE)
+
+    def expirado(self):
+        if self.agendamento_disponivel.data > datetime.now():
+            return 'Sim'
+        return 'Não'
 
     def __str__(self):
         return f"{self.cidadao} - {self.agendamento_disponivel}"
