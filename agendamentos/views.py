@@ -2,6 +2,8 @@ from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import render, redirect
+
+from agendamentos.decorators import cidadao_required, apto_agendamento_required
 from agendamentos.forms import CadastroCidadaoForm, AgendamentoForm
 from django.contrib import messages
 
@@ -29,6 +31,8 @@ def deslogar(request):
 
 
 @login_required
+@cidadao_required()
+@apto_agendamento_required()
 def agendamento(request):
     if request.user.cidadao.get_agendamento():
         messages.error(request, "Você já possui um agendamento!")
@@ -45,6 +49,8 @@ def agendamento(request):
 
 
 @login_required
+@cidadao_required()
+@apto_agendamento_required()
 def meus_agendamentos(request):
     agendamento = request.user.cidadao.get_agendamento()
     dados_agendamento = {}
@@ -60,6 +66,7 @@ def meus_agendamentos(request):
 
 
 @login_required
+@cidadao_required()
 def graficos(request):
     labels = []
     data = []

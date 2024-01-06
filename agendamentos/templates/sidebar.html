@@ -97,12 +97,14 @@
             <a href={{ graficos }}>Gráficos das Vacinações</a>
         </li>
         {% if request.user.is_authenticated %}
-            <li {% if request.path == agendamento %} class="active" {% endif %}>
-                <a href={{ agendamento }}>Agendamentos</a>
-            </li>
-            <li {% if request.path == meus_agendamentos %} class="active" {% endif %}>
-                <a href={{ meus_agendamentos }}>Meu Agendamento</a>
-            </li>
+            {% if request.user.cidadao.apto_agendamento %}
+                <li {% if request.path == agendamento %} class="active" {% endif %}>
+                    <a href={{ agendamento }}>Agendamentos</a>
+                </li>
+                <li {% if request.path == meus_agendamentos %} class="active" {% endif %}>
+                    <a href={{ meus_agendamentos }}>Meu Agendamento</a>
+                </li>
+            {% endif %}
             <li {% if request.path == deslogar %} class="active" {% endif %}>
                 <a href={{ deslogar }}>Logout</a>
             </li>
