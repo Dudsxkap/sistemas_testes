@@ -23,7 +23,10 @@ def cadastrar_usuario(request):
             user = cidadao.auth_user
             usuario_autenticado = authenticate(username=user.cpf, password=form.cleaned_data.get("senha"))
             login(request, usuario_autenticado)
-            messages.success(request, 'Usuário cadastrado com sucesso!')
+            msg = 'Você não está apto para realizar agendamentos de teste.'
+            if cidadao.apto_agendamento:
+                msg = 'Você está apto para realizar agendamentos de teste.'
+            messages.success(request, f'Usuário cadastrado com sucesso! {msg}')
             return redirect('index')
     return render(request, 'cadastro_usuario.html', locals())
 
