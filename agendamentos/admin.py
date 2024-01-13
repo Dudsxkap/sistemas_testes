@@ -11,6 +11,7 @@ admin.site.site_title = 'Administração do site'
 
 class EstabelecimentoSaudeAdmin(admin.ModelAdmin):
     list_display = ('nome', 'cnes',)
+    search_fields = ('nome', 'cnes',)
     list_filter = ('nome', 'cnes',)
 
 
