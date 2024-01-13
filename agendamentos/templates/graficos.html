@@ -18,7 +18,9 @@
                 <div class="card-body">
                     <h1>Transparência dos Agendamentos</h1>
                     {% bootstrap_messages %}
-                    <canvas class="chart" id="hospital-grafico"></canvas>
+                    <canvas class="chart mb-5" id="grafico-aptos"></canvas>
+
+                    <canvas class="chart" id="grafico-agendamentos"></canvas>
                 </div>
             </div>
         </div>
@@ -28,19 +30,19 @@
     {% bootstrap_javascript jquery='full' %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
     <script>
-        let config = {
+        let configApto = {
             type: 'pie',
             data: {
                 datasets: [
                     {
-                        data: {{ data|safe }},
+                        data: {{ data_grafico_aptos|safe }},
                         backgroundColor: [
-                            '#757294', '#646187', '#53507A'
+                            '#54cdd6', '#43a4ab'
                         ],
                         label: 'Aptidão para Agendamento'
                     }
                 ],
-                labels: {{ labels|safe }}
+                labels: {{ labels_grafico_aptos|safe }}
             },
             options: {
                 responsive: true,
@@ -51,9 +53,34 @@
             }
         };
 
+        let configAgendamento = {
+            type: 'bar',
+            data: {
+                datasets: [
+                    {
+                        data: {{ data_grafico_agendamentos|safe }},
+                        backgroundColor: [
+                            '#54cdd6'
+                        ],
+                        label: 'Agendamentos'
+                    }
+                ],
+                labels: {{ labels_grafico_agendamentos|safe }}
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Quantidade de agendamentos por estabelecimento',
+                }
+            }
+        };
+
         window.onload = function() {
-            let ctx = document.getElementById('hospital-grafico').getContext('2d');
-            window.myPie = new Chart(ctx, config);
+            let ctxApto = document.getElementById('grafico-aptos').getContext('2d');
+            window.myPie = new Chart(ctxApto, configApto);
+            let ctxAgendamento = document.getElementById('grafico-agendamentos').getContext('2d');
+            window.myBar = new Chart(ctxAgendamento, configAgendamento);
         };
 
     </script>

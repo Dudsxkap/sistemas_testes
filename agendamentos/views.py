@@ -7,7 +7,7 @@ from agendamentos.decorators import cidadao_required
 from agendamentos.forms import CadastroCidadaoForm, AgendamentoForm
 from django.contrib import messages
 
-from agendamentos.models import Cidadao
+from agendamentos.models import Cidadao, Agendamento
 from agendamentos.utils import strftime_local
 
 
@@ -79,11 +79,22 @@ def graficos(request):
     if not request.user.is_staff:
         return redirect('index')
 
-    labels = []
-    data = []
-    cidadaos = Cidadao.objects.all().values('apto_agendamento').annotate(qtd=Count('pk'))
-    for cidadao in cidadaos:
-        labels.append('Apto' if cidadao['apto_agendamento'] else 'Inapto')
-        data.append(cidadao['qtd'])
+    labels_grafico_aptos = []
+    data_grafico_aptos = []
+    labels_grafico_agendamentos = []
+    data_grafico_agendamentos = []
+    cidadaos_aptos = Cidadao.objects.all().values('apto_agendamento').annotate(qtd=Count('pk'))
+    agendamentos_por_estabelecimento = Agendamento.objects.all().values(
+        'agendamento_disponivel__estabelecimento_saude__nome'
+    ).annotate(qtd=Count('pk'))
+
+    for cidadao in cidadaos_aptos:
+        labels_grafico_aptos.append('Apto' if cidadao['apto_agendamento'] else 'Inapto')
+        data_grafico_aptos.append(cidadao['qtd'])
+
+    for agendamento in agendamentos_por_estabelecimento:
+        labels_grafico_agendamentos.append(agendamento['agendamento_disponivel__estabelecimento_saude__nome'])
+        data_grafico_agendamentos.append(agendamento['qtd'])
+
     return render(request, 'graficos.html', locals())
 
