@@ -13,16 +13,3 @@ def cidadao_required():
             return func(request, **kwargs)
         return newfn
     return decorator
-
-
-def apto_agendamento_required():
-    def decorator(func, **args):
-        def newfn(request, **kwargs):
-            if request.user.is_authenticated:
-                if not request.user.cidadao.apto_agendamento:
-                    return redirect('index')
-            else:
-                return redirect('login')
-            return func(request, **kwargs)
-        return newfn
-    return decorator
