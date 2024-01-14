@@ -5,7 +5,7 @@ from agendamentos.models import EstabelecimentoSaude, AgendamentoDisponivel
 
 
 class Command(BaseCommand):
-    help = 'Importa arquivo xml com estabelecimentos'
+    help = 'Cria agendamentos disponíveis em massa'
 
     def add_arguments(self, parser):
         parser.add_argument('data_inicial', type=str)
