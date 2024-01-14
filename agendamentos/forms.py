@@ -72,7 +72,7 @@ class AgendamentoForm(forms.ModelForm):
             queryset=AgendamentoDisponivel.objects.filter(
                 idade_inicial__lte=idade, idade_final__gte=idade, data__gt=datetime.now(),
                 num_vagas__gt=0
-            )
+            ).order_by('data')
         )
 
     @transaction.atomic()
